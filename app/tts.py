@@ -17,24 +17,27 @@ class TTS:
         self._groq = AsyncGroq(api_key=settings.groq_api_key)
         log.info("TTS initialized: primary=groq fallback=edge-tts")
 
-    async def synthesize(self, text: str, language: str, gender: str | None = None) -> str:
-        log.info("TTS synthesize lang=%s gender=%s chars=%d", language, gender or settings.tts_voice_gender, len(text))
+    async def synthesize(self, text: str, language: str, gender: str | None = None) -> str | None:
+        log.info("TTS synthesize lang=%s chars=%d", language, len(text))
         try:
-            result = await self._groq_tts(text)
-            return result
+            return await self._groq_tts(text)
         except Exception as e:
             log.warning("Groq TTS failed: %s — falling back to edge-tts", e)
+        try:
             return await self._edge_tts(text, language, gender)
+        except Exception as e:
+            log.warning("Edge TTS failed: %s — no audio", e)
+        return None
 
     async def _groq_tts(self, text: str) -> str:
         start = time.monotonic()
         response = await self._groq.audio.speech.create(
-            model=settings.groq_tts_model,
-            voice=settings.groq_tts_voice,
+            model="playai-tts",
+            voice="Celeste-PlayAI",
             input=text,
             response_format="wav",
         )
-        audio_bytes = response.read()
+        audio_bytes = bytes(response)
         elapsed = time.monotonic() - start
         log.info("Groq TTS done in %.2fs: %d bytes", elapsed, len(audio_bytes))
         return base64.b64encode(audio_bytes).decode()

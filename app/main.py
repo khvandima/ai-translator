@@ -248,13 +248,24 @@ async def websocket_endpoint(ws: WebSocket, session_id: str, user_role: str):
                     "translated": translated_text,
                     "from_me": True,
                 })
-                await ws_manager.send_to_partner(session_id, user_role, {
+                # await ws_manager.send_to_partner(session_id, user_role, {
+                #     "event": "message",
+                #     "role": user_role,
+                #     "original": translated_text,
+                #     "translated": original_text,
+                #     "from_me": False,
+                # })
+                
+                partner_payload = {
                     "event": "message",
                     "role": user_role,
-                    "original": translated_text,
-                    "translated": original_text,
+                    "original": original_text,
+                    "translated": translated_text,
                     "from_me": False,
-                })
+                }
+                if tts_b64:
+                    partner_payload["audio"] = tts_b64
+                await ws_manager.send_to_partner(session_id, user_role, partner_payload)
 
             elif event == "audio":
                 audio_b64 = data.get("data", "")
@@ -292,14 +303,25 @@ async def websocket_endpoint(ws: WebSocket, session_id: str, user_role: str):
                     "translated": translated_text,
                     "from_me": True,
                 })
-                await ws_manager.send_to_partner(session_id, user_role, {
+                # await ws_manager.send_to_partner(session_id, user_role, {
+                #     "event": "message",
+                #     "role": user_role,
+                #     "original": original_text,
+                #     "translated": translated_text,
+                #     "from_me": False,
+                #     "audio": tts_b64,
+                # })
+                
+                partner_payload = {
                     "event": "message",
                     "role": user_role,
                     "original": original_text,
                     "translated": translated_text,
                     "from_me": False,
-                    "audio": tts_b64,
-                })
+                }
+                if tts_b64:
+                    partner_payload["audio"] = tts_b64
+                await ws_manager.send_to_partner(session_id, user_role, partner_payload)
 
             elif event == "ping":
                 await ws_manager.send(session_id, user_role, {"event": "pong"})
