@@ -259,8 +259,8 @@ async def websocket_endpoint(ws: WebSocket, session_id: str, user_role: str):
                 partner_payload = {
                     "event": "message",
                     "role": user_role,
-                    "original": original_text,
-                    "translated": translated_text,
+                    "original": translated_text,
+                    "translated": original_text,
                     "from_me": False,
                 }
                 if tts_b64:
@@ -315,8 +315,8 @@ async def websocket_endpoint(ws: WebSocket, session_id: str, user_role: str):
                 partner_payload = {
                     "event": "message",
                     "role": user_role,
-                    "original": original_text,
-                    "translated": translated_text,
+                    "original": translated_text,
+                    "translated": original_text,
                     "from_me": False,
                 }
                 if tts_b64:
