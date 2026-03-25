@@ -212,6 +212,13 @@ async def websocket_endpoint(ws: WebSocket, session_id: str, user_role: str):
                 original_text = data.get("text", "").strip()
                 if not original_text:
                     continue
+                
+                # читаем свежую сессию каждый раз
+                session = await session_manager.get(session_id)
+                if not session:
+                    continue
+                my_lang = session.language_a if user_role == "user_a" else session.language_b
+                partner_lang = session.language_b if user_role == "user_a" else session.language_a
 
                 log.info("Text message: session=%s role=%s chars=%d", session_id, user_role, len(original_text))
 
@@ -233,8 +240,8 @@ async def websocket_endpoint(ws: WebSocket, session_id: str, user_role: str):
                 await ws_manager.send_to_partner(session_id, user_role, {
                     "event": "message",
                     "role": user_role,
-                    "original": original_text,
-                    "translated": translated_text,
+                    "original": translated_text,
+                    "translated": original_text,
                     "from_me": False,
                 })
 
@@ -243,6 +250,13 @@ async def websocket_endpoint(ws: WebSocket, session_id: str, user_role: str):
                 mime_type = data.get("mime_type", "audio/webm")
                 if not audio_b64:
                     continue
+                
+                # читаем свежую сессию каждый раз
+                session = await session_manager.get(session_id)
+                if not session:
+                    continue
+                my_lang = session.language_a if user_role == "user_a" else session.language_b
+                partner_lang = session.language_b if user_role == "user_a" else session.language_a
 
                 log.info("Audio message: session=%s role=%s", session_id, user_role)
 
