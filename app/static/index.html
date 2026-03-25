@@ -295,6 +295,21 @@
   .tts-toggle-label { font-size: 11px; color: var(--text2); font-family: 'DM Mono', monospace; transition: color 0.2s; }
   .tts-toggle.on .tts-toggle-label { color: var(--accent); }
 
+  .end-btn {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: rgba(255,80,80,0.1);
+    border: 1px solid rgba(255,80,80,0.25);
+    color: rgba(255,100,100,0.8);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .end-btn:hover { background: rgba(255,80,80,0.2); border-color: rgba(255,80,80,0.4); }
+
   .playing-bar {
     display: none; align-items: center; gap: 4px;
     padding: 2px 8px; margin-top: 4px;
@@ -586,6 +601,11 @@
           </svg>
           <span class="tts-toggle-label" id="tts-label">voice on</span>
         </div>
+        <button class="end-btn" onclick="endSession()" title="End session">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </button>
         <div class="status-dot" id="status-dot"></div>
       </div>
     </div>
@@ -751,6 +771,16 @@
 
       case 'pong':
         break;
+
+      case 'session_ended':
+        if (ws) ws.close();
+        sessionId = null;
+        myRole = null;
+        myLang = null;
+        document.getElementById('messages').innerHTML = '';
+        showScreen('setup');
+        showToast('Session ended');
+        break;
     }
   }
 
@@ -766,6 +796,15 @@
     icon.innerHTML = ttsEnabled
       ? '<path d="M5 4.5L9 7L5 9.5V4.5Z" fill="#c8f55a"/><path d="M10.5 4.5C11.8 5.3 11.8 8.7 10.5 9.5" stroke="#c8f55a" stroke-width="1.2" stroke-linecap="round"/>'
       : '<path d="M5 4.5L9 7L5 9.5V4.5Z" fill="rgba(240,237,232,0.3)"/><path d="M10.5 4.5C11.8 5.3 11.8 8.7 10.5 9.5" stroke="rgba(240,237,232,0.2)" stroke-width="1.2" stroke-linecap="round"/><line x1="2" y1="2" x2="12" y2="12" stroke="rgba(240,237,232,0.3)" stroke-width="1.2" stroke-linecap="round"/>';
+  }
+
+  async function endSession() {
+    if (!confirm('End session?')) return;
+    if (sessionId) {
+      try {
+        await fetch('/session/' + sessionId, { method: 'DELETE' });
+      } catch (e) {}
+    }
   }
 
   async function playAudio(b64, playingBar) {

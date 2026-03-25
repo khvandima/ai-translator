@@ -103,6 +103,21 @@ async def get_session(session_id: str):
     return session.to_dict()
 
 
+@app.delete("/session/{session_id}")
+async def delete_session(session_id: str):
+    await session_manager.delete(session_id)
+    await ws_manager.broadcast(session_id, {
+        "event": "session_ended",
+        "message": "Session ended",
+    })
+    room = ws_manager._rooms.get(session_id, {})
+    for ws in list(room.values()):
+        await ws.close(code=1000)
+    ws_manager._rooms.pop(session_id, None)
+    log.info("Session deleted: %s", session_id)
+    return {"status": "deleted"}
+
+
 @app.get("/session/{session_id}/qr")
 async def get_qr(session_id: str):
     session = await session_manager.get(session_id)
@@ -203,8 +218,8 @@ async def websocket_endpoint(ws: WebSocket, session_id: str, user_role: str):
                 await ws_manager.send_to_partner(session_id, user_role, {
                     "event": "message",
                     "role": user_role,
-                    "original": translated_text,
-                    "translated": original_text,
+                    "original": original_text,
+                    "translated": translated_text,
                     "from_me": False,
                 })
 
@@ -240,8 +255,8 @@ async def websocket_endpoint(ws: WebSocket, session_id: str, user_role: str):
                 await ws_manager.send_to_partner(session_id, user_role, {
                     "event": "message",
                     "role": user_role,
-                    "original": translated_text,
-                    "translated": original_text,
+                    "original": original_text,
+                    "translated": translated_text,
                     "from_me": False,
                     "audio": tts_b64,
                 })
@@ -259,3 +274,4 @@ async def websocket_endpoint(ws: WebSocket, session_id: str, user_role: str):
     except Exception as e:
         log.error("WS error: session=%s role=%s error=%s", session_id, user_role, e)
         ws_manager.disconnect(session_id, user_role)
+        
