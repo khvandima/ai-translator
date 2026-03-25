@@ -683,7 +683,7 @@
       const res = await fetch('/session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ language_a: langA, language_b: 'en', context }),
+        body: JSON.stringify({ language_a: langA, language_b: langA, context }),
       });
       const data = await res.json();
       sessionId = data.session_id;

@@ -182,14 +182,23 @@ async def websocket_endpoint(ws: WebSocket, session_id: str, user_role: str):
 
     await ws_manager.connect(session_id, user_role, ws)
 
-    my_lang = session.language_a if user_role == "user_a" else session.language_b
-    partner_lang = session.language_b if user_role == "user_a" else session.language_a
+    # my_lang = session.language_a if user_role == "user_a" else session.language_b
+    # partner_lang = session.language_b if user_role == "user_a" else session.language_a
 
+    # await ws_manager.send(session_id, user_role, {
+    #     "event": "connected",
+    #     "role": user_role,
+    #     "my_language": my_lang,
+    #     "partner_language": partner_lang,
+    #     "context": session.context,
+    #     "session_id": session_id,
+    # })
+    
     await ws_manager.send(session_id, user_role, {
         "event": "connected",
         "role": user_role,
-        "my_language": my_lang,
-        "partner_language": partner_lang,
+        "my_language": session.language_a if user_role == "user_a" else session.language_b,
+        "partner_language": session.language_b if user_role == "user_a" else session.language_a,
         "context": session.context,
         "session_id": session_id,
     })
