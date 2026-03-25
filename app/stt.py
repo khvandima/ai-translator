@@ -3,22 +3,22 @@ import tempfile
 import time
 from pathlib import Path
 
-import whisper
+from faster_whisper import WhisperModel
 
 from config import settings
 from logger import get_logger
 
 log = get_logger(__name__)
 
-_model: whisper.Whisper | None = None
+_model: WhisperModel | None = None
 
 
-def get_model() -> whisper.Whisper:
+def get_model() -> WhisperModel:
     global _model
     if _model is None:
         log.info("Loading Whisper model: %s", settings.whisper_model)
         start = time.monotonic()
-        _model = whisper.load_model(settings.whisper_model)
+        _model = WhisperModel(settings.whisper_model, device="cpu", compute_type="int8")
         log.info("Whisper model loaded in %.2fs", time.monotonic() - start)
     return _model
 
@@ -36,15 +36,14 @@ async def transcribe(audio_b64: str, mime_type: str = "audio/webm") -> str:
     start = time.monotonic()
     try:
         model = get_model()
-        result = model.transcribe(str(tmp_path), fp16=False)
-        text = result["text"].strip()
+        segments, _ = model.transcribe(str(tmp_path))
+        text = " ".join(s.text for s in segments).strip()
         elapsed = time.monotonic() - start
 
         if text:
             log.info("STT done in %.2fs: %s", elapsed, text[:80])
         else:
             log.warning("STT returned empty result in %.2fs", elapsed)
-
         return text
     except Exception as e:
         log.error("STT failed after %.2fs: %s", time.monotonic() - start, e)
