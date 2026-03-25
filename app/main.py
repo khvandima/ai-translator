@@ -8,7 +8,7 @@ from fastapi.responses import HTMLResponse, Response, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from analytics import analytics, init_analytics
+from analytics import get_analytics, init_analytics
 from config import settings
 from logger import get_logger
 from session import session_manager
@@ -64,7 +64,7 @@ async def admin_stats(token: str = ""):
         log.warning("Admin stats: invalid token attempt")
         raise HTTPException(status_code=403, detail="Forbidden")
     log.info("Admin stats requested")
-    return await analytics.get_stats()
+    return await get_analytics().get_stats()
 
 
 @app.post("/session", response_model=CreateSessionResponse)
@@ -79,7 +79,7 @@ async def create_session(request: Request, body: CreateSessionRequest):
     join_url = f"{settings.qr_base_url}/join/{session.session_id}"
 
     client_ip = request.headers.get("x-forwarded-for", request.client.host)
-    await analytics.track_session(
+    await get_analytics().track_session(
         language_a=body.language_a,
         language_b=body.language_b,
         context=body.context,
@@ -191,7 +191,7 @@ async def websocket_endpoint(ws: WebSocket, session_id: str, user_role: str):
                     target_lang=partner_lang,
                     context=session.context,
                 )
-                await analytics.track_message(mode="text")
+                await get_analytics().track_message(mode="text")
 
                 await ws_manager.send(session_id, user_role, {
                     "event": "message",
@@ -228,7 +228,7 @@ async def websocket_endpoint(ws: WebSocket, session_id: str, user_role: str):
                     context=session.context,
                 )
                 tts_b64 = await tts.synthesize(translated_text, partner_lang)
-                await analytics.track_message(mode="audio")
+                await get_analytics().track_message(mode="audio")
 
                 await ws_manager.send(session_id, user_role, {
                     "event": "message",

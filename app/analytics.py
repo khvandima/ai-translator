@@ -103,6 +103,12 @@ class Analytics:
 analytics: Analytics | None = None
 
 
+def get_analytics() -> Analytics:
+    if analytics is None:
+        raise RuntimeError("Analytics not initialized")
+    return analytics
+
+
 def init_analytics(redis: aioredis.Redis) -> None:
     global analytics
     analytics = Analytics(redis)
