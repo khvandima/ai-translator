@@ -15,7 +15,7 @@ redis[hiredis]==5.1.0
 groq==0.11.0
 
 # STT
-openai-whisper==20240930
+# openai-whisper==20240930
 
 # TTS (fallback)
 edge-tts==6.1.12
