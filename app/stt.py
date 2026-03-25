@@ -2,6 +2,7 @@ import base64
 import tempfile
 import time
 from pathlib import Path
+import asyncio
 
 from faster_whisper import WhisperModel
 
@@ -23,6 +24,35 @@ def get_model() -> WhisperModel:
     return _model
 
 
+# async def transcribe(audio_b64: str, mime_type: str = "audio/webm") -> str:
+#     audio_bytes = base64.b64decode(audio_b64)
+#     size_kb = len(audio_bytes) / 1024
+#     log.info("STT received %.1f KB audio [%s]", size_kb, mime_type)
+
+#     suffix = ".webm" if "webm" in mime_type else ".wav"
+#     with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+#         tmp.write(audio_bytes)
+#         tmp_path = Path(tmp.name)
+
+#     start = time.monotonic()
+#     try:
+#         model = get_model()
+#         segments, _ = model.transcribe(str(tmp_path))
+#         text = " ".join(s.text for s in segments).strip()
+#         elapsed = time.monotonic() - start
+
+#         if text:
+#             log.info("STT done in %.2fs: %s", elapsed, text[:80])
+#         else:
+#             log.warning("STT returned empty result in %.2fs", elapsed)
+#         return text
+#     except Exception as e:
+#         log.error("STT failed after %.2fs: %s", time.monotonic() - start, e)
+#         raise
+#     finally:
+#         tmp_path.unlink(missing_ok=True)
+
+
 async def transcribe(audio_b64: str, mime_type: str = "audio/webm") -> str:
     audio_bytes = base64.b64decode(audio_b64)
     size_kb = len(audio_bytes) / 1024
@@ -35,9 +65,8 @@ async def transcribe(audio_b64: str, mime_type: str = "audio/webm") -> str:
 
     start = time.monotonic()
     try:
-        model = get_model()
-        segments, _ = model.transcribe(str(tmp_path))
-        text = " ".join(s.text for s in segments).strip()
+        loop = asyncio.get_event_loop()
+        text = await loop.run_in_executor(None, _transcribe_sync, str(tmp_path))
         elapsed = time.monotonic() - start
 
         if text:
@@ -50,3 +79,9 @@ async def transcribe(audio_b64: str, mime_type: str = "audio/webm") -> str:
         raise
     finally:
         tmp_path.unlink(missing_ok=True)
+
+
+def _transcribe_sync(tmp_path: str) -> str:
+    model = get_model()
+    segments, _ = model.transcribe(tmp_path)
+    return " ".join(s.text for s in segments).strip()
