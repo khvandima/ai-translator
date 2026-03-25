@@ -4,7 +4,7 @@ from io import BytesIO
 
 import qrcode
 from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
-from fastapi.responses import HTMLResponse, Response
+from fastapi.responses import HTMLResponse, Response, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -46,6 +46,11 @@ class CreateSessionResponse(BaseModel):
     session_id: str
     join_url: str
     qr_url: str
+
+
+@app.get("/")
+async def root():
+    return RedirectResponse(url="/static/index.html")
 
 
 @app.get("/health")
