@@ -716,9 +716,16 @@
     }
   }
 
-  function joinSession() {
+  async function joinSession() {
     const langB = document.getElementById('lang-b').value;
     myLang = langB;
+    try {
+      await fetch('/session/' + sessionId + '/language_b', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ language_b: langB }),
+      });
+    } catch (e) {}
     connectWS(sessionId, 'user_b');
   }
 

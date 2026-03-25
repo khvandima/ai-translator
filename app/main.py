@@ -46,6 +46,10 @@ class CreateSessionResponse(BaseModel):
     session_id: str
     join_url: str
     qr_url: str
+    
+    
+class UpdateLanguageBRequest(BaseModel):
+    language_b: str
 
 
 @app.get("/")
@@ -101,6 +105,17 @@ async def get_session(session_id: str):
         log.warning("Session not found: %s", session_id)
         raise HTTPException(status_code=404, detail="Session not found")
     return session.to_dict()
+
+
+@app.patch("/session/{session_id}/language_b")
+async def update_language_b(session_id: str, body: UpdateLanguageBRequest):
+    session = await session_manager.get(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    session.language_b = body.language_b
+    await session_manager.update(session)
+    log.info("Session language_b updated: %s → %s", session_id, body.language_b)
+    return {"status": "ok"}
 
 
 @app.delete("/session/{session_id}")
