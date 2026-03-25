@@ -237,6 +237,8 @@ async def websocket_endpoint(ws: WebSocket, session_id: str, user_role: str):
                     target_lang=partner_lang,
                     context=session.context,
                 )
+                tts_b64 = await tts.synthesize(translated_text, partner_lang)
+                
                 await get_analytics().track_message(mode="text")
 
                 await ws_manager.send(session_id, user_role, {
