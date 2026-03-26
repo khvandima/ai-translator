@@ -301,7 +301,7 @@
   .tts-toggle-label { font-size: 11px; color: var(--text2); font-family: 'DM Mono', monospace; transition: color 0.2s; }
   .tts-toggle.on .tts-toggle-label { color: var(--accent); }
 
-  .end-btn {
+  /*.end-btn {
     width: 32px; height: 32px;
     border-radius: 50%;
     background: rgba(255,80,80,0.1);
@@ -314,7 +314,38 @@
     flex-shrink: 0;
     transition: background 0.15s, border-color 0.15s;
   }
-  .end-btn:hover { background: rgba(255,80,80,0.2); border-color: rgba(255,80,80,0.4); }
+  .end-btn:hover { background: rgba(255,80,80,0.2); border-color: rgba(255,80,80,0.4); } */
+
+  .end-btn {
+    display: flex;
+    align-items: center;
+    background: rgba(255,80,80,0.1);
+    border: 1px solid rgba(255,80,80,0.3);
+    border-radius: 40px;
+    padding: 5px 14px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .end-btn:hover { background: rgba(255,80,80,0.2); border-color: rgba(255,80,80,0.5); }
+  .end-btn-label {
+    font-size: 11px;
+    color: rgba(255,100,100,0.9);
+    font-family: 'DM Mono', monospace;
+  }
+  .online-indicator {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .online-label {
+    font-size: 11px;
+    color: var(--text3);
+    font-family: 'DM Mono', monospace;
+    transition: color 0.3s;
+  }
+  .status-dot.connected ~ .online-label { color: var(--accent); }
 
   .playing-bar {
     display: none; align-items: center; gap: 4px;
@@ -611,12 +642,19 @@
           </svg>
           <span class="tts-toggle-label" id="tts-label">voice on</span>
         </div> -->
-        <button class="end-btn" onclick="endSession()" title="End session">
+        <!-- <button class="end-btn" onclick="endSession()" title="End session">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
             <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
           </svg>
         </button>
-        <div class="status-dot" id="status-dot"></div>
+        <div class="status-dot" id="status-dot"></div> -->
+        <div class="end-btn" onclick="endSession()">
+          <span class="end-btn-label">End session</span>
+        </div>
+        <div class="online-indicator">
+          <div class="status-dot" id="status-dot"></div>
+          <span class="online-label" id="online-label">online</span>
+        </div>
       </div>
     </div>
 
@@ -746,6 +784,7 @@
 
     ws.onopen = () => {
       document.getElementById('status-dot').classList.add('connected');
+      document.getElementById('online-label').style.color = 'var(--accent)';
     };
 
     ws.onmessage = (e) => {
@@ -755,6 +794,7 @@
 
     ws.onclose = () => {
       document.getElementById('status-dot').classList.remove('connected');
+      document.getElementById('online-label').style.color = 'var(--text3)';
       showToast('Disconnected');
     };
 
@@ -780,6 +820,7 @@
       case 'partner_left':
         addSystemMsg('Partner disconnected');
         document.getElementById('status-dot').classList.remove('connected');
+        document.getElementById('online-label').style.color = 'var(--text3)';
         break;
 
       case 'message':
