@@ -13,7 +13,8 @@ python-dotenv==1.0.1
 redis[hiredis]==5.1.0
 
 # AI / Translation
-groq==0.11.0
+# groq==0.11.0
+groq==0.13.0
 
 # STT
 # openai-whisper==20240930

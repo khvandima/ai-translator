@@ -37,7 +37,7 @@ class TTS:
             input=text,
             response_format="wav",
         )
-        audio_bytes = bytes(response)
+        audio_bytes = response.content
         elapsed = time.monotonic() - start
         log.info("Groq TTS done in %.2fs: %d bytes", elapsed, len(audio_bytes))
         return base64.b64encode(audio_bytes).decode()
